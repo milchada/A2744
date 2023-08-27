@@ -27,6 +27,7 @@ plt.plot(bins[:-1], trimodal(bins[:-1], *params), color='tab:purple', lw=3, labe
 #		   = np.array([ 890.68371263, 1340.18550331,  283.18850712])
 #A_fit = np.array([10.06950447, 10.75791065,  3.08782618])
 
+"Finding relative velocities between BCGs is so tricky!!"
 
 import pickle 
 from astropy.constants import k_B
@@ -35,8 +36,7 @@ kB = k_B.to('keV/K').value
 
 def catalog_regions(dir, npeaks=3):
     #Find 2 or 3 peak points and then find the kappa, sb, temp around them
-    #this would be easiest to do in projection. you can find the 2-3 lensing peaks
-
+    
     kappas = glob.glob(dir+'/kappa*fits'); kappas.sort()
     median = {}
     std = {}
