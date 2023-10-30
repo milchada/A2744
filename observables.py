@@ -40,6 +40,7 @@ def catalog_regions(dir, npeaks=3):
     kappas = glob.glob(dir+'/kappa*fits'); kappas.sort()
     median = {}
     std = {}
+    pos = {}
     keys = ['kappa', 'sb', 'temp']
     for key in keys:
         median[key] = {}
@@ -47,6 +48,8 @@ def catalog_regions(dir, npeaks=3):
         for ax in ['x', 'y', 'z']:
             median[key][ax] = {}
             std[key][ax] = {}
+            pos[ax] = {}
+            
     for k in kappas:
         snap = int(k.split('proj_')[1].split('_')[0])
         ax = k.split('_')[-1].split('.')[0]
@@ -64,12 +67,14 @@ def catalog_regions(dir, npeaks=3):
         for (img, lab) in zip([kappa, sb, temp], keys):
             median[lab][ax][snap] = {}
             std[lab][ax][snap] = {}
+            pos[ax][snap] = {}
 
         for peak in peaks:
             c = (peak[1], peak[0])
             dist = np.sqrt((X - c[0])**2 + (Y - c[1])**2)
             mask = (dist < rad)
             maskind = peaks.tolist().index(peak.tolist())
+            pos[ax][snap][maskind] = c*dx
 
             for (img, lab) in zip([kappa, sb, temp], keys):
                 median[lab][ax][snap][maskind] = np.nanmedian(img[mask])
@@ -82,6 +87,9 @@ def catalog_regions(dir, npeaks=3):
 
     with open('std.pkl', 'wb') as f:
         pickle.dump(std, f)
+
+    with open('pos.pkl', 'wb') as f:
+            pickle.dump(pos, f)
             
     # with open('saved_dictionary.pkl', 'rb') as f:
     #     loaded_dict = pickle.load(f)
