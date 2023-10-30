@@ -52,7 +52,7 @@ Thus, we have six mergers to simulate - three binary, two triple, and one quadru
 ## How to run the code
 1 - Use [initial_conditions.py](initial_conditions.py) to generate the initial profiles of the sub-clusters. The free parameters here are cluster mass & dark matter concentration (these two are assumed to be initially along the mass-concentration relation of Diemer & Kravtsov 2015), gas cool core size (r_c) and strength (inner slope alpha). The gas extent and outer radius are kept fixed for now, although they could affect the strength of the radio relics, which are now all in the cluster outskirts. We do not, however, aim to reproduce their strengths at this point, because full modeling of the radio relics requires detailed modeling of the magnetic field and cosmic ray population. 
 
-2 - For any binary, plane-of-sky merger, [initial_conditions.py](initial_conditions.py) can be used to output the (X,Y) positions of the cluster centers and velocities, used in the GAMER-2 setup file Input__TestProb. This assumes that the merger is in the X-Y plane and the Z-axis is the line of sight. If the merger axis is $\theta$ away from the z-axis (default line of sight), use the following:
+2 - [initial_pos_vel.py](initial_pos_vel.py) computes the 3D positions and velocities of the triple mergers described above. The formalism is such that, if the merger axis is $\theta$ away from the z-axis (default line of sight):
 
 $d_{XY} = d\cdot\sin(\theta)$
 
@@ -62,10 +62,24 @@ $v_{Z} = v\cdot\cos(\theta)$
 
 $v_{XY} = \sqrt{v^2 - v_{Z}^2}$
 
-3 - For triple mergers, we have to further decompose the plane-of-sky quantities into X and Y components, since these are no longer equivalent to different viewing directions. If a merger axis between two components is $\phi$ away from the x-axis:
+We have to further decompose the plane-of-sky quantities into X and Y components, since these are no longer equivalent to different viewing directions in triple mergers. If a merger axis between two components is $\phi$ away from the x-axis:
 
 $d_X = d_{XY}\cdot\cos{\phi}$
 
 $d_Y = d_{XY}\cdot\sin{\phi}$
 
 and similarly for ${v_X, v_Y}$.
+
+3 - We then run the simulations with GAMER-2 (for installation and examples please see the code [Wiki](https://github.com/gamer-project/gamer/wiki)). You could use your favourite gravity+hydrodynamics code. The outputs of [initial_conditions.py](initial_conditions.py) ending in _gamer.h5 are optimised for GAMER-2, but it also produces analogs without this tag that are in regular HDF5 format. For GAMER-2 runs:
+- Set up Input__TestProb using the positions and velocities computed above
+- Set up Input__Parameter to the duration (END_T), time resolution (OUTPUT_DT) and spatial resolution (MAX_LEVEL) you want. The time unit is 10 Gyr; increasing MAX_LEVEL by 1 decreases the size of the most refined resolution element by 2x.
+
+4 - Use [makefits-offaxis.py](makefits-offaxis.py) to generate FITS images of the X-ray surface brightness, temperature, and total mass density of each snapshot. Remember, $\theta = 0^\circ$ is a line-of sight merger, $\theta = 90^\circ$ is in the plane-of-sky. For $\theta = 90^\circ$, $\phi = 0^\circ$ means the merger axis is along the x-axis, while $\phi = 90^\circ$ is along the y-axis. We include an example to sample evenly in $\theta$ and $\phi$; this is not the same as uniformly sampling around the circle. *I would like to write that soon*.
+
+5 - At this point, we have a tremendous catalogue of images for each simulation from a number of viewing directions. [observables.py](observables.py) creates a dictionary object for each simulation `median[property][projection axis][snapshot][mass_peak_id]` (and a corresponding `std` dict) where:
+- property = ['sb', 'temp', 'kappa', 'pos', 'vel']
+- projection_axis = ['x', 'y', 'z']
+- mass_peak_id = rank order of substructure, sorted by local convergence kappa
+The properties are measured in an aperture of radius 100 kpc centered around each mass peak. The projected positions of the peaks are stored in `pos.pkl`. You can do this for any number of peaks.
+
+6 - The line of sight velocities are a bit trickier for the triple mergers. For the binary mergers, we can create velocity maps in the merger plane (X-Y) and use the values at the positions of the kappa peaks. For multiple component mergers, it is trickier. Brute force would be creating a narrow cylinder along the z-axis at the x-y position of the density peak, finding the densest point along the cylinder, and measuring its 3D velocity. Is there a better way to do this in yt? 
