@@ -51,12 +51,21 @@ Thus, we have six mergers to simulate; each simulation will have to be run a few
 
 ## How to run the code
 1 - Use [initial_conditions.py](initial_conditions.py) to generate the initial profiles of the sub-clusters. The free parameters here are cluster mass & dark matter concentration (these two are assumed to be initially along the mass-concentration relation of Diemer & Kravtsov 2015), gas cool core size (r_c) and strength (inner slope alpha). The gas extent and outer radius are kept fixed for now, although they could affect the strength of the radio relics, which are now all in the cluster outskirts. We do not, however, aim to reproduce their strengths at this point, because full modeling of the radio relics requires detailed modeling of the magnetic field and cosmic ray population. 
+
 2 - For any binary, plane-of-sky merger, [initial_conditions.py](initial_conditions.py) can be used to output the (X,Y) positions of the cluster centers and velocities, used in the GAMER-2 setup file Input__TestProb. This assumes that the merger is in the X-Y plane and the Z-axis is the line of sight. If the merger axis is $\theta$ away from the z-axis (default line of sight), use the following:
+
 $d_{XY} = d\cdot\sin(\theta)$
+
 $d_Z = \sqrt{d^2 - d_{XY}^2}$
+
 $v_{Z} = v\cdot\cos(\theta)$
+
 $v_{XY} = \sqrt{v^2 - v_{Z}^2}$
+
 3 - For triple mergers, we have to further decompose the plane-of-sky quantities into X and Y components, since these are no longer equivalent to different viewing directions. If a merger axis between two components is $\phi$ away from the x-axis:
+
 $d_X = d_{XY}\cdot\cos{\phi}$
+
 $d_Y = d_{XY}\cdot\sin{\phi}$
+
 and similarly for ${v_X, v_Y}$.
