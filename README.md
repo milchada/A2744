@@ -47,7 +47,7 @@ Now that we know the relative timings of the above mergers, we set up the follow
 Parantheses indicate plane-of-sky mergers. At this point, we expect the 3D orientations to differ slightly from the binary merger predictions due to 3-body effects.
 
 Lastly, we will run the full system: {(NW-1 + [S2 + S1]) + N} + NW-2. 
-Thus, we have six mergers to simulate; each simulation will have to be run a few different times to account for uncertainties in the inherent properties of the merging components. Different viewing directions do not need to be simulated; they are produced simply by projecting images along different lines of sight. 
+Thus, we have six mergers to simulate - three binary, two triple, and one quadruple. Each simulation will have to be run a few different times to account for uncertainties in the inherent properties of the merging components. Different viewing directions do not need to be simulated; they are produced simply by projecting images along different lines of sight. 
 
 ## How to run the code
 1 - Use [initial_conditions.py](initial_conditions.py) to generate the initial profiles of the sub-clusters. The free parameters here are cluster mass & dark matter concentration (these two are assumed to be initially along the mass-concentration relation of Diemer & Kravtsov 2015), gas cool core size (r_c) and strength (inner slope alpha). The gas extent and outer radius are kept fixed for now, although they could affect the strength of the radio relics, which are now all in the cluster outskirts. We do not, however, aim to reproduce their strengths at this point, because full modeling of the radio relics requires detailed modeling of the magnetic field and cosmic ray population. 
