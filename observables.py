@@ -3,6 +3,9 @@ import matplotlib.pylab as plt
 from matplotlib import colors, cm
 from scipy.optimize import curve_fit
 from astropy.io import fits
+import pickle 
+from astropy.constants import k_B
+from skimage.feature import peak_local_max
 
 basePath = '/Users/mila/Documents/Research/Postdoc/A2744/'
 furt = fits.getdata(basePath+'Furtak-JWST-lensing/A2744_cluster-members_v1.0 Lukas Furtak.fits')
@@ -26,11 +29,6 @@ plt.plot(bins[:-1], trimodal(bins[:-1], *params), color='tab:purple', lw=3, labe
 #sigma_fit = np.array([0.00296895, 0.00446729, 0.00094396])
 #		   = np.array([ 890.68371263, 1340.18550331,  283.18850712])
 #A_fit = np.array([10.06950447, 10.75791065,  3.08782618])
-
-
-import pickle 
-from astropy.constants import k_B
-from skimage.feature import peak_local_max
 
 kB = k_B.to('keV/K').value
 
@@ -99,3 +97,27 @@ def catalog_regions(dir, npeaks=3):
 #I think I should rank order the peaks by the median kappa 
     #from obs, we have median and std. Honestly with the level of idealisation in this problem 
     #I think the median should just be within the observed median +/- std
+
+def total_dens(field, data):
+        #create a total density field
+        return data['gas', 'density'] + data['particle_density_on_grid']
+    
+def find_bcg_velocities(snapshot, npeaks, axis='z'):
+    ds = yt.load(snapshot)
+    boxsize = (ds.parameters['BoxSize'][0], 'Mpc')
+    xmin = ds.find_min(("gamer","dx"))
+    xmin = xmin[0].to('Mpc').value
+    image_res = round(boxsize[0]/xmin)
+    ds.add_field(("gamer", "total_density"), units="g/cm**3", function=total_dens, sampling_type="cell")
+    kappa = yt.FITSProjection(ds, axis, ('gamer','total_density'), weight_field=None, width=(boxsize), center='c', image_res = image_res)
+    kappa = kappa['total_density'].data
+    peaks = peak_local_max(kappa, num_peaks = npeaks)
+    vpeaks = np.zeros((npeaks, 3))
+    for peak in peaks:
+        c = [peak[1]*xmin, peak[0]*xmin, boxsize[0]/2.]
+        box = ds.disk(c, [0,0,1], (10, 'kpc'), boxsize)
+        pot_box = = box[('gamer', 'Pote')]
+        v_box = box[('gas','velocity_%s' % axis)]
+        v_los = v_box[np.argmin(pot_box)].to('km/s')
+        vpeaks[peaks.index(peak)] = v_los
+    return vpeaks
