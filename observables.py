@@ -30,6 +30,7 @@ plt.plot(bins[:-1], trimodal(bins[:-1], *params), color='tab:purple', lw=3, labe
 
 import pickle 
 from astropy.constants import k_B
+from skimage.feature import peak_local_max
 
 kB = k_B.to('keV/K').value
 
