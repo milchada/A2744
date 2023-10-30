@@ -81,7 +81,7 @@ def catalog_regions(dir, npeaks=3):
         pickle.dump(median, f)
 
     with open('std.pkl', 'wb') as f:
-        pickle.dump(median, f)
+        pickle.dump(std, f)
             
     # with open('saved_dictionary.pkl', 'rb') as f:
     #     loaded_dict = pickle.load(f)
