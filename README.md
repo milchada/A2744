@@ -76,10 +76,16 @@ and similarly for ${v_X, v_Y}$.
 
 4 - Use [makefits-offaxis.py](makefits-offaxis.py) to generate FITS images of the X-ray surface brightness, temperature, and total mass density of each snapshot. Remember, $\theta = 0^\circ$ is a line-of sight merger, $\theta = 90^\circ$ is in the plane-of-sky. For $\theta = 90^\circ$, $\phi = 0^\circ$ means the merger axis is along the x-axis, while $\phi = 90^\circ$ is along the y-axis. We include an example to sample evenly in $\theta$ and $\phi$; this is not the same as uniformly sampling around the circle. *I would like to write that soon*.
 
-5 - At this point, we have a tremendous catalogue of images for each simulation from a number of viewing directions. [observables.py](observables.py) creates a dictionary object for each simulation `median[property][projection axis][snapshot][mass_peak_id]` (and a corresponding `std` dict) where:
-- property = ['sb', 'temp', 'kappa', 'pos', 'vel']
-- projection_axis = ['x', 'y', 'z']
-- mass_peak_id = rank order of substructure, sorted by local convergence kappa
-The properties are measured in an aperture of radius 100 kpc centered around each mass peak. The projected positions of the peaks are stored in `pos.pkl`. You can do this for any number of peaks.
+5 - At this point, it is useful to make movies of the simulations from the [x, y, z] viewing directions. The code for this is in [movie.py](movie.py). This gives us an intuition for whether the simulation we have run at all resembles the observed counterpart, and, if so, what the approximate phase and viewing direction of the merger is at the time of observation.
 
-6 - The line of sight velocities are a bit trickier for the triple mergers. For the binary mergers, we can create velocity maps in the merger plane (X-Y) and use the values at the positions of the kappa peaks. For multiple component mergers, it is trickier. Brute force would be creating a narrow cylinder along the z-axis at the x-y position of the density peak, finding the densest point along the cylinder, and measuring its 3D velocity. Is there a better way to do this in yt? 
+6 - We have a tremendous catalogue of images for each simulation from a number of viewing directions. The `pos_vel` function in [observables.py](observables.py) creates a catalog of the 3D positions and velocities for the halo centers at each simulation snapshot. It outputs two dicts, `pos[snap][mass_peak_id]` and `vel[snap][mass_peak_id]`, where:
+- snapshot is the simulation snapshot
+- mass_peak_id = rank order of substructure, sorted by local convergence kappa. 
+There are 2 peaks for the binary mergers, 3 for the triple mergers, and 4 for the quadruple mergers. However, we expect the peak finder to fail at snapshots when any two halo centres are very close to each other. These can be caught as sudden jumps in the positions or velocities; these snapshots must be treated with great caution, and generally are not the ones we seek. 
+
+7 - Similarly, the `catalog_regions` function creates one dictionary object for each simulation `mean[property][projection axis][snapshot][mass_peak_id]` (and a corresponding `std` dict) where:
+- property = ['sb', 'temp', 'kappa']
+- projection_axis = ['x', 'y', 'z']
+- snapshot is the simulation snapshot
+- mass_peak_id = rank order of substructure, sorted by local convergence kappa. 
+The properties are measured in an aperture of radius 100 kpc centered around each mass peak. 
