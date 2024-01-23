@@ -144,12 +144,12 @@ def make_clusters(run_dict):
                         num_particles=num_particles, r_max=p_rmax)
     cg.setup_gamer_ics(ics, regenerate_particles=False)
 run_dicts = [
-        {"num": 1, "r_c1": 0.2, "r_c2": 0.1, "alpha1": 1.0, "alpha2": 2.0, "R" : 5.2, "M200" : 1.2e15, "b" : 150, "v" : 1000, "d":4000} #, #S1 - S2 merger
-       # {"num": 2, "r_c1": 0.1, "r_c2": 0.1, "alpha1": 0.5, "alpha2": 2.0, "R": 1, "M200": 8e14, "b" : 100, "v" : 1512, "d": 1500} #N - S2 merger
- #       {"num": 3, "r_c1": 0.5, "r_c2": 0.1, "alpha1": 0.1, "alpha2": 1.0, "R" : 1, "M200" : 4e14, "b" : 150, "v" : 4000, "d": 3000} #S1, NW2; not currently merging
-#        {"num": 4, "r_c1": 0.3, "r_c2": 0.2, "alpha1": 0.3, "alpha2": 1.0, "R" : 6.67, "M200" : 2.3e14, "b" : 150, "v" : 4500}]
-#        {"num": 5, "r_c1": 0.3, "r_c2": 0.3, "alpha1": 0.3, "alpha2": 0.3, "R": 4, "M200" : 1e15, "b" : 2000, "v" : 4000}],
-#        {"num": 6, "r_c1": 0.1, "r_c2": 0.1, "alpha1": 0.1, "alpha2": 1, "R" : 4, "M200" : 1e15, "b" : 1600, "v" : 4000}
+        {"num": 1, "r_c1": 0.1, "r_c2": 0.3, "alpha1": 2.0, "alpha2": 1.0, "R" : 5.2, "M200" : 1.2e15, "b" : 150, "v" : 1000, "d":4000}, #, #S1 - S2 merger
+        {"num": 2, "r_c1": 0.3, "r_c2": 0.3, "alpha1": 0.5, "alpha2": 1.0, "R": 1, "M200": 8e14, "b" : 300, "v" : 1512, "d": 1500}, #NW1-NW2 merger
+        {"num": 3, "r_c1": 0.3, "r_c2": 0.3, "alpha1": 1.0, "alpha2": 1.0, "R" : 1, "M200" : 4e14, "b" : 150, "v" : 4000, "d": 3000} #S2-N; not currently merging
+ #       {"num": 4, "r_c1": 0.3, "r_c2": 0.2, "alpha1": 0.3, "alpha2": 1.0, "R" : 6.67, "M200" : 2.3e14, "b" : 150, "v" : 4500},
+ #       {"num": 5, "r_c1": 0.3, "r_c2": 0.3, "alpha1": 0.3, "alpha2": 0.3, "R": 4, "M200" : 1e15, "b" : 2000, "v" : 4000},
+ #       {"num": 6, "r_c1": 0.1, "r_c2": 0.1, "alpha1": 0.1, "alpha2": 1, "R" : 4, "M200" : 1e15, "b" : 1600, "v" : 4000}
 ]
 for run_dict in run_dicts:
     make_clusters(run_dict)

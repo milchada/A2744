@@ -1,14 +1,15 @@
 import glob, os
-from scipy.ndimage import rotate
-from astropy.io import fits
+import numpy as np
 import matplotlib
 # matplotlib.use('Agg')
 import matplotlib.pylab as plt
 from matplotlib import colors, cm
 from astropy.constants import k_B
+from astropy.io import fits
 from astropy import units as u
-import numpy as np
 from skimage.feature import peak_local_max
+from scipy.ndimage import rotate
+from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 z = 0.308
 from astropy.constants import c, G
@@ -16,11 +17,10 @@ from astropy.cosmology import default_cosmology
 lcdm = default_cosmology.get()
 Dl = lcdm.angular_diameter_distance(z)
 Sigma_crit = c**2/(4*np.pi*G*Dl)
+kB = k_B.to('keV/K').value
 
 #rotate(image, angle, reshape=False)
 dirs = ['ncc-cc-r=1_8/','ncc-wcc-r=3/','wcc-cc-r=6_67/','ncc-ncc-r=5_2/', 'wcc-wcc-r=4/'] #'wcc-cc-r=4/',
-
-kB = k_B.to('keV/K').value
 props = ['kappa', 'photon']
 
 def plot_rotation(dir, snap, xmin=100, xmax=400):
@@ -90,47 +90,58 @@ def plot_distance(dir,key=''):
 		dist_array[i] = snap, d
 	return dist_array
 
-def plot(dir, prop='kappa', key='', xmin=3000, xmax=9000, ymin=4000, ymax=10000):
-	files = glob.glob(dir+'/*%s*%s*fits' % (prop,key))
+def plot(dir, key='', xmin=0, xmax=10000, ymin=0, ymax=10000):
+	files = glob.glob(dir+'/kappa*%s*fits' % key)
 	dx = fits.getheader(files[0])['CDELT1']
 	files.sort()
-	xtix = np.arange(xmin/1000., xmax/1000. + 0.1, 0.2)
-	xmean = (xmin+xmax)/2000.
-	xpos = xtix*1000./dx
-	ytix = np.arange(ymin/1000., ymax/1000. + 0.1, 0.2)
-	ypos = ytix*1000./dx
-
 	area_pix = (dx*u.kpc.to('cm'))**2
 	dL = lcdm.luminosity_distance(z).to('cm').value
-	tcolor = 'w'
+
 	for m in files:
-		if 'kappa' in prop:
-			img = fits.getdata(m)/Sigma_crit.to('g/cm**2').value
-			cmap = cm.viridis
-			bounds = 10**np.linspace(np.log10(0.086), np.log10(1.8), 10)
-			norm = colors.BoundaryNorm(bounds, cmap.N)
-		elif 'photon_flux' in prop:
-			img = fits.getdata(m)#*area_pix/(4*np.pi*dL**2)
-			#there is some unit conversion here that I am missing
-			#the sim output is in photons/s/cm**2.. but this didn't know the redshift, did it?
-			cmap = cm.afmhot
-			norm = colors.PowerNorm(0.5, vmin=1.5e-8, vmax=4.8e-7)
-		elif 'temp' in prop:
-			img = fits.getdata(m)*kB
-			cmap = cm.RdBu_r
-			norm = colors.Normalize(5.5, 22)
-			tcolor = 'k'
-		plt.clf()
-		plt.imshow(img, norm=norm, cmap=cmap)
-		plt.xlim(xmin/dx, xmax/dx)
-		plt.ylim(ymin/dx, ymax/dx)
-		plt.colorbar()
+		kappa = fits.getdata(m)/Sigma_crit.to('g/cm**2').value
+		kappa_cmap = cm.viridis
+		# kappa_bounds = 10**np.linspace(np.log10(0.086), np.log10(1.8), 10)
+		kappa_norm = colors.LogNorm(kappa.max()/10, kappa.max()) #colors.BoundaryNorm(kappa_bounds, kappa_cmap.N)
+		
+		photon_flux = fits.getdata(m.replace('kappa', 'xray_sb_0.5_7_keV'))
+		flux_cmap = cm.magma
+		flux_norm = colors.PowerNorm(0.5, vmin=5e-8, vmax=6e-7)
+		
+		temp = fits.getdata(m.replace('kappa', 'temperature'))*kB
+		temp_cmap = cm.afmhot
+		temp_norm = colors.Normalize(1, 10)
+		
+		fig, ax = plt.subplots(ncols = 3, figsize=(8,2), sharex=True, sharey=True)
+		labels = [r'$\kappa$', 'SB (cm$^{-2}$ s$^{-1}$)', 'T (keV)']
+
+		for (a, img, cmap, norm, lab) in zip(ax, [kappa, photon_flux, temp], [kappa_cmap, flux_cmap, temp_cmap], [kappa_norm, flux_norm, temp_norm], labels):
+			im = a.imshow(img, cmap=cmap, norm=norm)
+			divider = make_axes_locatable(a)
+			cax = divider.append_axes("right", size="5%", pad=0.05)
+			cbar = fig.colorbar(im, cax=cax, shrink=0.65, aspect=10)
+			cbar.set_label(lab, size=8)
+			
+		xtix = np.arange(xmin/1000., xmax/1000. + 0.1, 2)
+		xmean = (xmin+xmax)/2000.
+		xpos = xtix*1000./dx
+		ytix = np.arange(ymin/1000., ymax/1000. + 0.1, 2)
+		ypos = ytix*1000./dx
+		for a in ax.flatten():
+			a.set_xticks(xpos)
+			a.set_xticklabels(['%0.1f' % t for t in (xtix - xmean)], fontsize=8)
+		ax[0].set_yticks(ypos)
+		ax[0].set_yticklabels(['%0.1f' % t for t in (ytix - xmean)])
+		
+		plt.tight_layout()
+		shape = img.shape 
 		snap = m.split('_')[-2].split('.')[0]
+		ax[0].text(shape[0]//10, shape[1]//10, 't = %0.2f Gyr' % (float(snap)/100.), color='w', fontsize=8)
+		ax[0].set_xlim(0, shape[0])
+		ax[0].set_ylim(0, shape[1])
+		
+		plt.savefig(dir+'_%s%s.png' % (snap, key), dpi=512)
 		print(snap)
-		plt.xticks(xpos, ['%0.1f' % t for t in (xtix - xmean)])
-		plt.yticks(ypos, ['%0.1f' % t for t in (ytix - xmean)])
-		plt.text(xpos[0]+10, ypos[0]+10, 't = %0.2f Gyr' % (float(snap)/100.), color=tcolor)
-		plt.savefig(dir+'_%s_%s%s.png' % (prop, snap, key), dpi=192)
+		plt.close()
 
 def plot_xray_mass(dir, nlevels=5, snapmin=0, xmin=0, xmax=512, key='', suffix='', pre=''):
     if pre == '':
